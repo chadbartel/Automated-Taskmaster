@@ -1,0 +1,12 @@
+[
+    {"name": "Goblin", "cr": "1/4", "environment": ["cave", "forest", "ruins"], "source": "SRD"},
+    {"name": "Orc", "cr": "1/2", "environment": ["mountain", "hills", "any"], "source": "SRD"},
+    {"name": "Kobold", "cr": "1/8", "environment": ["cave", "forest", "mountain"], "source": "SRD"},
+    {"name": "Troll", "cr": "5", "environment": ["swamp", "forest", "mountain"], "source": "SRD"},
+    {"name": "Giant Spider", "cr": "1/4", "environment": ["forest", "cave"], "source": "SRD"},
+    {"name": "Dragon Wyrmling", "cr": "2", "environment": ["mountain", "cave"], "source": "SRD"},
+    {"name": "Zombie", "cr": "1/4", "environment": ["urban", "ruins"], "source": "SRD"},
+    {"name": "Skeleton", "cr": "1/4", "environment": ["urban", "ruins"], "source": "SRD"},
+    {"name": "Giant Rat", "cr": "1/8", "environment": ["urban", "cave"], "source": "SRD"},
+    {"name": "Bandit", "cr": "1/8", "environment": ["urban", "road"], "source": "SRD"}
+]
