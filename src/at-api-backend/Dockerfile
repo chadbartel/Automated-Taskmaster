@@ -1,21 +1,19 @@
-# Use the official AWS Lambda Python base image for Python 3.12
-FROM public.ecr.aws/lambda/python:3.12
+FROM python:3.12-slim
 
-# Set the root directory for the Lambda function, also the working directory
-ENV LAMBDA_TASK_ROOT=/var/task
-WORKDIR ${LAMBDA_TASK_ROOT}
+WORKDIR /app
 
-# Copy requirements.txt first to leverage Docker caching
-COPY requirements.txt .
-# Install dependencies into the LAMBDA_TASK_ROOT
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt -t .
+RUN groupadd --system appuser && useradd --system --gid appuser appuser
 
-# Copy the main handler file (e.g., your FastAPI app definition)
-COPY handler.py .
+COPY src/automated-taskmaster/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the 'automated_taskmaster' package directory into the LAMBDA_TASK_ROOT.
-COPY ./automated_taskmaster ./automated_taskmaster/
+# Copy the entire application source code from src/automated-taskmaster into the container's /app
+COPY src/automated-taskmaster/ ./ 
 
-# Set the CMD to your handler function within handler.py
-CMD [ "handler.lambda_handler" ]
+RUN chown -R appuser:appuser /app
+USER appuser
+
+EXPOSE 8000
+# For Lambda with Mangum, the handler is specified in Lambda config (e.g., handler.lambda_handler_asgi)
+# This CMD is for local 'docker run' testing.
+CMD ["uvicorn", "handler:app", "--host", "0.0.0.0", "--port", "8000"]
