@@ -7,9 +7,9 @@ license = "CC0-1.0"
 readme = "README.md"
 package-mode = true
 packages = [
-    { include = "automated_taskmaster", from = "src/at-backend" },
-    { include = "models", from = "src/at-backend" },
-    { include = "routers", from = "src/at-backend" }
+    { include = "automated_taskmaster", from = "src/at-api-backend" },
+    { include = "models", from = "src/at-api-backend" },
+    { include = "routers", from = "src/at-api-backend" }
 ]
 
 [tool.poetry.dependencies]
