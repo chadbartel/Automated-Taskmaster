@@ -20,7 +20,10 @@
     "@aws-cdk/aws-s3:createDefaultLoggingPolicy": true,
     "@aws-cdk/aws-iam:minimizePolicies": true,
     "@aws-cdk/core:stackRelativeExports": true,
-    "@aws-cdk/aws-lambda:recognizeLayerVersion": true
+    "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
+    "stack-suffix": "dev",
+    "taskmaster_image_tag": "latest",
+    "allowed_docs_ips": "127.0.0.1"
   },
   "build": null,
   "output": "cdk.out",
