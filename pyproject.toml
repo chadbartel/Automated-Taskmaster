@@ -1,12 +1,16 @@
 [tool.poetry]
 name = "automated-taskmaster"
 version = "0.1.0"
-description = ""
+description = "A TTRPG utility for generating encounters, loot, or prompts for character backstory."
 authors = ["thatsmidnight <10793854+thatsmidnight@users.noreply.github.com>"]
 license = "CC0-1.0"
 readme = "README.md"
-package-mode = false
-packages = []
+package-mode = true
+packages = [
+    { include = "automated_taskmaster", from = "src/at-backend" },
+    { include = "models", from = "src/at-backend" },
+    { include = "routers", from = "src/at-backend" }
+]
 
 [tool.poetry.dependencies]
 python = "~3.12"
@@ -15,6 +19,9 @@ boto3 = "^1.38.27"
 aws-cdk-lib = "^2.199.0"
 aws-lambda-powertools = "^3.13.0"
 constructs = "^10.4.2"
+fastapi = "^0.115.12"
+mangum = "^0.19.0"
+uvicorn = "^0.34.3"
 
 [tool.poetry.group.dev.dependencies]
 black = "^25.1.0"
