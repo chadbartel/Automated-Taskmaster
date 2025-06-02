@@ -31,8 +31,5 @@ USER appuser
 # Expose port 8000 (standard for Uvicorn/FastAPI, though not directly used by Lambda when invoked via Mangum)
 EXPOSE 8000
 
-# Command to run the Uvicorn server for local testing or non-Lambda deployments.
-# For AWS Lambda, the Lambda runtime will invoke the 'handler.lambda_handler' function
-# specified in your Lambda configuration (via Mangum).
-# The FastAPI 'app' instance is in 'handler.py'.
-CMD ["uvicorn", "handler:app", "--host", "0.0.0.0", "--port", "8000"]
+# Set the CMD to your handler
+CMD [ "handler.lambda_handler" ]
