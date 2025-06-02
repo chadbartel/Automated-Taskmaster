@@ -11,9 +11,7 @@ logger = Logger(service="at-utils")
 # Set static variables
 API_PREFIX = os.getenv("API_PREFIX", "api/v1")
 ALLOWED_IPS_STR = os.environ.get("ALLOWED_IPS", "")
-ALLOWED_IPS = [
-    ip.strip() for ip in ALLOWED_IPS_STR.split(",") if ip.strip()
-]
+ALLOWED_IPS = [ip.strip() for ip in ALLOWED_IPS_STR.split(",") if ip.strip()]
 
 
 def verify_client_id_address(request: Request) -> bool:
@@ -54,9 +52,7 @@ def verify_client_id_address(request: Request) -> bool:
 
     # Check if the source IP is None or not in the allowed list
     if not ALLOWED_IPS:
-        logger.warning(
-            "WARN: ALLOWED_IPS is not set. Denying docs access."
-        )
+        logger.warning("WARN: ALLOWED_IPS is not set. Denying docs access.")
         raise HTTPException(
             status_code=403, detail="Documentation access is disabled."
         )
