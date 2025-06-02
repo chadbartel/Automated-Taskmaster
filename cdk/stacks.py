@@ -33,6 +33,7 @@ class AutomatedTaskmasterStack(Stack):
         stack_suffix : Optional[str], optional
             Suffix to append to resource names for this stack, by default ""
         """
+        self.api_prefix = kwargs.pop("api_prefix", "api/v1")
         super().__init__(scope, construct_id, **kwargs)
 
         # region Stack Suffix and Subdomain Configuration
@@ -78,7 +79,7 @@ class AutomatedTaskmasterStack(Stack):
 
         # Create proxy route for the API
         taskmaster_api.add_routes(
-            path="/{proxy+}",
+            path="/".join([f"/{self.api_prefix}", "{proxy+}"]),
             methods=[apigwv2.HttpMethod.ANY],
             integration=taskmaster_integration,
         )
