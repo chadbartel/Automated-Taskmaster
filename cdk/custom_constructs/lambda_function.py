@@ -6,6 +6,7 @@ from typing import Optional, List
 from aws_cdk import (
     aws_lambda as _lambda,
     aws_iam as iam,
+    aws_ecr as ecr,
     Duration,
 )
 from constructs import Construct
@@ -96,7 +97,81 @@ class CustomLambdaFromDockerImage(Construct):
             environment=powertools_env_vars,
             layers=layers,
             initial_policy=initial_policy,
-            role=role,
-            description=description
-            or f"Lambda function for {name}{stack_suffix}",
+            description=description or f"Lambda function for {name}{stack_suffix}",
         )
+
+
+class CustomDockerImageFunction(CustomLambdaFromDockerImage):
+    def __init__(
+        self,
+        scope: Construct,
+        id: str,
+        src_folder_path: str,
+        stack_suffix: Optional[str] = "",
+        ecr_repository: Optional[ecr.Repository] = None,
+        ecr_image_tag: Optional[str] = "latest",
+        is_ecr_image: Optional[bool] = False,
+        memory_size: Optional[int] = 512,
+        timeout: Optional[Duration] = Duration.seconds(30),
+        environment: Optional[dict] = None,
+        layers: Optional[List[_lambda.ILayerVersion]] = None,
+        initial_policy: Optional[List[iam.PolicyStatement]] = None,
+        description: Optional[str] = None,
+        **kwargs,
+    ) -> None:
+        super().__init__(scope, id, **kwargs)
+
+        # Set variables for Lambda function
+        name = os.path.basename(src_folder_path)
+        code_path = os.path.join(os.getcwd(), "src", src_folder_path)
+
+        # Append stack suffix to name if provided
+        if stack_suffix:
+            name = f"{name}{stack_suffix}"
+
+        # Default environment variables for Powertools for AWS Lambda
+        powertools_env_vars = {
+            "POWERTOOLS_SERVICE_NAME": name,
+            "LOG_LEVEL": "INFO",
+            "POWERTOOLS_LOGGER_SAMPLE_RATE": "0.1",
+            "POWERTOOLS_LOGGER_LOG_EVENT": "true",
+            "POWERTOOLS_METRICS_NAMESPACE": "ArcaneScribeApp",
+            "POWERTOOLS_TRACER_CAPTURE_RESPONSE": "true",
+            "POWERTOOLS_TRACER_CAPTURE_ERROR": "true",
+        }
+
+        # Merge provided environment variables with Powertools defaults
+        if environment:
+            powertools_env_vars.update(environment)
+
+        if is_ecr_image and ecr_repository:
+            # Use ECR image if specified
+            self.function = _lambda.DockerImageFunction(
+                self,
+                "DefaultFunction",
+                code=_lambda.DockerImageCode.from_ecr(
+                    repository=ecr_repository,
+                    tag=ecr_image_tag,
+                ),
+                memory_size=memory_size,
+                timeout=timeout,
+                environment=powertools_env_vars,
+                layers=layers,
+                initial_policy=initial_policy,
+                description=description or f"Lambda function for {name}{stack_suffix}",
+            )
+        else:
+            # Use Docker image from asset
+            self.function = _lambda.DockerImageFunction(
+                self,
+                "DefaultFunction",
+                code=_lambda.DockerImageCode.from_image_asset(
+                    directory=code_path,
+                ),
+                memory_size=memory_size,
+                timeout=timeout,
+                environment=powertools_env_vars,
+                layers=layers,
+                initial_policy=initial_policy,
+                description=description or f"Lambda function for {name}{stack_suffix}",
+            )
