@@ -9,7 +9,8 @@ package-mode = true
 packages = [
     { include = "automated_taskmaster", from = "src/at-api-backend" },
     { include = "models", from = "src/at-api-backend/automated_taskmaster" },
-    { include = "routers", from = "src/at-api-backend/automated_taskmaster" }
+    { include = "routers", from = "src/at-api-backend/automated_taskmaster" },
+    { include = "helpers", from = "src/at-api-backend/automated_taskmaster" }
 ]
 
 [tool.poetry.dependencies]
