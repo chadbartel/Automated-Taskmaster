@@ -17,7 +17,6 @@ class CustomLambdaFromDockerImage(Construct):
         scope: Construct,
         id: str,
         src_folder_path: str,
-        handler: Optional[str] = None,
         stack_suffix: Optional[str] = "",
         memory_size: Optional[int] = 512,
         timeout: Optional[Duration] = Duration.seconds(30),
@@ -37,8 +36,6 @@ class CustomLambdaFromDockerImage(Construct):
             The ID of the construct.
         src_folder_path : str
             Path to the source folder containing the Lambda function code.
-        handler : Optional[str], optional
-            The handler for the Lambda function, by default None
         stack_suffix : Optional[str], optional
             Suffix to append to the Lambda function name, by default ""
         memory_size : Optional[int], optional
@@ -86,7 +83,7 @@ class CustomLambdaFromDockerImage(Construct):
             "DefaultFunction",
             function_name=name,
             runtime=_lambda.Runtime.FROM_IMAGE,
-            handler=handler or _lambda.Handler.FROM_IMAGE,
+            handler=_lambda.Handler.FROM_IMAGE,
             code=_lambda.Code.from_asset_image(
                 directory=code_path,
                 # This assumes a Dockerfile is present in the src folder
