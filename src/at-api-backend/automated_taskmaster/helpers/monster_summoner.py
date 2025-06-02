@@ -17,7 +17,7 @@ logger = Logger(service="at-monster-summoner")
 _MONSTER_DATA_FILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "..", "data", "monsters.json"
 )
-_MONSTERS_CACHE: List[Monster] = []
+_MONSTERS_CACHE: List[Monster] = None
 
 
 @lru_cache(maxsize=1)
