@@ -1,19 +1,15 @@
-FROM python:3.12-slim
+# Use the official AWS Lambda Python base image for Python 3.12
+FROM public.ecr.aws/lambda/python:3.12
 
-WORKDIR /app
+ENV LAMBDA_TASK_ROOT=/var/task
 
-RUN groupadd --system appuser && useradd --system --gid appuser appuser
+# Copy function code
+COPY handler.py ${LAMBDA_TASK_ROOT}/
+ADD rag_query_processor/ ${LAMBDA_TASK_ROOT}/rag_query_processor
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install dependencies from requirements.txt
+COPY requirements.txt ${LAMBDA_TASK_ROOT}/
+RUN pip install -r requirements.txt -t ${LAMBDA_TASK_ROOT}/
 
-# Copy the entire application source code from src/automated-taskmaster into the container's /app
-ADD handler.py automated_taskmaster/ app/
-
-RUN chown -R appuser:appuser /app
-USER appuser
-
-EXPOSE 8000
-# For Lambda with Mangum, the handler is specified in Lambda config (e.g., handler.lambda_handler_asgi)
-# This CMD is for local 'docker run' testing.
-CMD ["uvicorn", "handler:app", "--host", "0.0.0.0", "--port", "8000"]
+# Set the CMD to your handler
+CMD [ "handler.lambda_handler" ]
