@@ -33,7 +33,6 @@ class AutomatedTaskmasterStack(Stack):
         stack_suffix : Optional[str], optional
             Suffix to append to resource names for this stack, by default ""
         """
-        self.api_prefix = kwargs.pop("api_prefix", "api/v1")
         super().__init__(scope, construct_id, **kwargs)
 
         # region Stack Suffix and Subdomain Configuration
@@ -43,9 +42,10 @@ class AutomatedTaskmasterStack(Stack):
         self.full_domain_name = (
             f"{self.subdomain_part}{self.stack_suffix}.{self.base_domain_name}"
         )
-        self.allowed_docs_ips_from_context = (
-            self.node.try_get_context("allowed_docs_ips") or "127.0.0.1"
+        self.allowed_ips_from_context = (
+            self.node.try_get_context("allowed_ips") or "127.0.0.1"
         )
+        self.api_prefix = self.node.try_get_context("api_prefix") or "api/v1"
         # endregion
 
         # region Backend Lambda Function
@@ -53,7 +53,7 @@ class AutomatedTaskmasterStack(Stack):
             construct_id="TaskmasterBackendLambda",
             src_folder_path="at-api-backend",
             environment={
-                "ALLOWED_DOCS_IPS": self.allowed_docs_ips_from_context,
+                "ALLOWED_IPS": self.allowed_ips_from_context,
                 "API_PREFIX": self.api_prefix,
             },
             memory_size=512,

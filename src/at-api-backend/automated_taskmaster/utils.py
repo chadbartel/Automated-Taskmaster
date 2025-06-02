@@ -1,5 +1,5 @@
 # Standard Library
-from typing import List
+import os
 
 # Third Party
 from fastapi import Request, HTTPException
@@ -8,16 +8,21 @@ from aws_lambda_powertools import Logger
 # Initialize a logger
 logger = Logger(service="at-utils")
 
+# Set static variables
+API_PREFIX = os.getenv("API_PREFIX", "api/v1")
+ALLOWED_IPS_STR = os.environ.get("ALLOWED_IPS", "")
+ALLOWED_IPS = [
+    ip.strip() for ip in ALLOWED_IPS_STR.split(",") if ip.strip()
+]
 
-def verify_client_id_address(request: Request, allowed_ips: List[str]) -> bool:
+
+def verify_client_id_address(request: Request) -> bool:
     """Verify the client's IP address against allowed IPs for API access.
 
     Parameters
     ----------
     request : Request
         The FastAPI request object containing client information.
-    allowed_ips : List[str]
-        A list of allowed IP addresses for accessing the API.
 
     Returns
     -------
@@ -44,18 +49,18 @@ def verify_client_id_address(request: Request, allowed_ips: List[str]) -> bool:
 
     # Log the source IP and allowed IPs for debugging
     logger.debug(
-        f"Docs access attempt from IP: {source_ip}. Allowed: {allowed_ips}"
+        f"Docs access attempt from IP: {source_ip}. Allowed: {ALLOWED_IPS}"
     )
 
     # Check if the source IP is None or not in the allowed list
-    if not allowed_ips:
+    if not ALLOWED_IPS:
         logger.warning(
-            "WARN: ALLOWED_DOCS_IPS is not set. Denying docs access."
+            "WARN: ALLOWED_IPS is not set. Denying docs access."
         )
         raise HTTPException(
             status_code=403, detail="Documentation access is disabled."
         )
-    if source_ip not in allowed_ips:
+    if source_ip not in ALLOWED_IPS:
         logger.warning(f"WARN: Forbidden docs access for IP: {source_ip}")
         raise HTTPException(
             status_code=403, detail="Access to documentation is restricted."
