@@ -6,7 +6,6 @@ from typing import Optional, List
 from aws_cdk import (
     aws_lambda as _lambda,
     aws_iam as iam,
-    aws_ecr as ecr,
     Duration,
 )
 from constructs import Construct
