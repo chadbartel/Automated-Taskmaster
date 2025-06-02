@@ -4,11 +4,11 @@ WORKDIR /app
 
 RUN groupadd --system appuser && useradd --system --gid appuser appuser
 
-COPY src/automated-taskmaster/requirements.txt .
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the entire application source code from src/automated-taskmaster into the container's /app
-COPY src/automated-taskmaster/ ./ 
+COPY . ./
 
 RUN chown -R appuser:appuser /app
 USER appuser
