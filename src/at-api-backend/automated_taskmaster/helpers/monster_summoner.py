@@ -17,7 +17,7 @@ logger = Logger(service="at-monster-summoner")
 _MONSTER_DATA_FILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "..", "data", "monsters.json"
 )
-_MONSTERS_CACHE: List[Monster] = None
+_MONSTERS_CACHE: List[Monster] = []
 
 
 @lru_cache(maxsize=1)
@@ -28,15 +28,41 @@ def load_monsters_cached() -> List[Monster]:
     -------
     List[Monster]
         A list of `Monster` objects loaded from the JSON file.
+
+    Raises
+    -------
+    FileNotFoundError
+        If the monster data file does not exist.
+    JSONDecodeError
+        If the monster data file contains invalid JSON.
+    Exception
+        For any other unexpected errors during file reading or parsing.
     """
     # Set up a global cache for monsters
     global _MONSTERS_CACHE
 
     # If the cache is empty, load the data from the JSON file
     if not _MONSTERS_CACHE:
-        with open(_MONSTER_DATA_FILE, "r") as f:
-            data = json.load(f)
-        _MONSTERS_CACHE = [Monster(**monster) for monster in data]
+        logger.info(f"Loading monster data from: {_MONSTER_DATA_FILE}")
+
+        # Ensure the file exists before attempting to read it
+        try:
+            with open(_MONSTER_DATA_FILE, "r") as f:
+                data = json.load(f)
+            _MONSTERS_CACHE = [Monster(**monster) for monster in data]
+            logger.info(
+                f"Successfully loaded {len(_MONSTERS_CACHE)} monsters from the data file."
+            )
+        except FileNotFoundError:
+            logger.error(f"Monster data file not found: {_MONSTER_DATA_FILE}")
+            _MONSTERS_CACHE = []
+        except json.JSONDecodeError as e:
+            logger.error(f"Invalid JSON in monster data file: {e}")
+            _MONSTERS_CACHE = []
+        except Exception as e:
+            logger.error(f"Unexpected error loading monster data: {e}")
+            _MONSTERS_CACHE = []
+
     return _MONSTERS_CACHE
 
 
