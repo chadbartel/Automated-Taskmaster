@@ -8,7 +8,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the entire application source code from src/automated-taskmaster into the container's /app
-COPY . ./
+ADD handler.py automated_taskmaster/ app/
 
 RUN chown -R appuser:appuser /app
 USER appuser
