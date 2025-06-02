@@ -1,15 +1,38 @@
-# Use the official AWS Lambda Python base image for Python 3.12
-FROM public.ecr.aws/lambda/python:3.12
+# Use an official Python runtime as a parent image
+FROM python:3.12-slim
 
-ENV LAMBDA_TASK_ROOT=/var/task
+# Set the working directory in the container
+WORKDIR /app
 
-# Copy function code
-COPY handler.py ${LAMBDA_TASK_ROOT}/
-ADD rag_query_processor/ ${LAMBDA_TASK_ROOT}/rag_query_processor
+# Create a non-root user and group for security
+# Running applications as a non-root user is a good security practice.
+RUN groupadd --system appuser && useradd --system --gid appuser appuser
 
-# Install dependencies from requirements.txt
-COPY requirements.txt ${LAMBDA_TASK_ROOT}/
-RUN pip install -r requirements.txt -t ${LAMBDA_TASK_ROOT}/
+# Copy the dependencies file first to leverage Docker cache
+# This means if requirements.txt doesn't change, this layer won't be rebuilt.
+COPY requirements.txt .
 
-# Set the CMD to your handler
-CMD [ "handler.lambda_handler" ]
+# Install any needed packages specified in requirements.txt
+# --no-cache-dir reduces image size
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Copy the rest of the application source code from the build context
+# (which is src/automated-taskmaster/) into the WORKDIR (/app) in the container.
+# This will copy handler.py and the automated_taskmaster/ sub-package, etc.
+COPY . .
+
+# Change ownership of the /app directory to the non-root user
+RUN chown -R appuser:appuser /app
+
+# Switch to the non-root user
+USER appuser
+
+# Expose port 8000 (standard for Uvicorn/FastAPI, though not directly used by Lambda when invoked via Mangum)
+EXPOSE 8000
+
+# Command to run the Uvicorn server for local testing or non-Lambda deployments.
+# For AWS Lambda, the Lambda runtime will invoke the 'handler.lambda_handler' function
+# specified in your Lambda configuration (via Mangum).
+# The FastAPI 'app' instance is in 'handler.py'.
+CMD ["uvicorn", "handler:app", "--host", "0.0.0.0", "--port", "8000"]
