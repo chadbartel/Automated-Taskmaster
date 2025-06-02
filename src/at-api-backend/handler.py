@@ -27,6 +27,10 @@ app = FastAPI(
 # Add the API router to the FastAPI app
 app.include_router(router)
 
+# Initialize Mangum handler globally
+# This instance will be reused across invocations in a warm Lambda environment.
+lambda_asgi_handler = Mangum(app, lifespan="off")
+
 
 @logger.inject_lambda_context(
     log_event=True, correlation_id_path=correlation_paths.API_GATEWAY_HTTP
@@ -48,8 +52,5 @@ def lambda_handler(
     Dict[str, Any]
         The response from the FastAPI application.
     """
-    # Create a Mangum handler to adapt FastAPI for AWS Lambda
-    handler = Mangum(app)
-
     # Return the response from the FastAPI application
-    return handler(event, context)
+    return lambda_asgi_handler(event, context)
