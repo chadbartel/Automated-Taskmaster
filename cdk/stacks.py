@@ -60,7 +60,7 @@ class AutomatedTaskmasterStack(Stack):
                 "API_PREFIX": self.api_prefix,
             },
             memory_size=512,
-            timeout=Duration.minutes(30),
+            timeout=Duration.seconds(30),
             description="Automated Taskmaster backend Lambda function",
         )
         # endregion
