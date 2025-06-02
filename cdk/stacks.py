@@ -55,6 +55,7 @@ class AutomatedTaskmasterStack(Stack):
         taskmaster_backend_lambda = self.create_lambda_function(
             construct_id="TaskmasterBackendLambda",
             src_folder_path="at-api-backend",
+            handler="handler.lambda_handler",
             environment={
                 "ALLOWED_IPS": self.allowed_ips_from_context,
                 "API_PREFIX": self.api_prefix,
@@ -158,6 +159,7 @@ class AutomatedTaskmasterStack(Stack):
         self,
         construct_id: str,
         src_folder_path: str,
+        handler: Optional[str] = None,
         environment: Optional[dict] = None,
         memory_size: Optional[int] = 128,
         timeout: Optional[Duration] = Duration.seconds(10),
@@ -172,6 +174,8 @@ class AutomatedTaskmasterStack(Stack):
             The ID of the construct.
         src_folder_path : str
             The path to the source folder for the Lambda function code.
+        handler : Optional[str], optional
+            The handler for the Lambda function, by default None
         environment : Optional[dict], optional
             Environment variables for the Lambda function, by default None
         memory_size : Optional[int], optional
@@ -192,6 +196,7 @@ class AutomatedTaskmasterStack(Stack):
             scope=self,
             id=construct_id,
             src_folder_path=src_folder_path,
+            handler=handler,
             stack_suffix=self.stack_suffix,
             environment=environment,
             memory_size=memory_size,
