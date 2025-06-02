@@ -5,25 +5,17 @@ from typing import Optional, List
 from aws_cdk import (
     Stack,
     aws_iam as iam,
-    aws_lambda as lambda_,
+    aws_lambda as _lambda,
     aws_apigatewayv2 as apigwv2,
     aws_apigatewayv2_integrations as apigwv2_integrations,
-    aws_apigatewayv2_authorizers as apigwv2_authorizers,
-    aws_certificatemanager as acm,
-    aws_route53 as route53,
-    aws_route53_targets as targets,
     Duration,
     CfnOutput,
-    Fn,
 )
 from constructs import Construct
 
 # Local Modules
 from cdk.custom_constructs.lambda_function import CustomLambdaFromDockerImage
 from cdk.custom_constructs.http_api import CustomHttpApiGateway
-from cdk.custom_constructs.http_lambda_authorizer import (
-    CustomHttpLambdaAuthorizer,
-)
 
 
 class AutomatedTaskmasterStack(Stack):
@@ -45,60 +37,26 @@ class AutomatedTaskmasterStack(Stack):
 
         # region Stack Suffix and Subdomain Configuration
         self.stack_suffix = (stack_suffix if stack_suffix else "").lower()
-        self.base_domain_name = "chadbartel.com"
+        self.base_domain_name = "thatsmidnight.com"
         self.subdomain_part = "automated-taskmaster"
         self.full_domain_name = (
             f"{self.subdomain_part}{self.stack_suffix}.{self.base_domain_name}"
         )
-        self.api_prefix = self.node.try_get_context("api_prefix") or "/api/v1"
-        # endregion
-
-        # region Import CloudFormation Outputs
-        # Import home IP SSM Parameter Name
-        imported_home_ip_ssm_param_name = Fn.import_value(
-            "home-ip-ssm-param-name"
-        )
-
-        # Import Authorizer IAM Role ARN
-        imported_authorizer_role_arn = Fn.import_value(
-            "authorizer-lambda-role-arn"
+        self.allowed_docs_ips_from_context = (
+            self.node.try_get_context("allowed_docs_ips") or "127.0.0.1"
         )
         # endregion
 
-        # region IAM Roles
-        # Import the Authorizer Lambda IAM Role
-        ip_authorizer_lambda_role = iam.Role.from_role_arn(
-            self,
-            "ImportedIpAuthorizerRole",
-            role_arn=imported_authorizer_role_arn,
-            mutable=False,
-        )
-        # endregion
-
-        # region Lambda Functions
-        # Backend Lambda Function
+        # region Backend Lambda Function
         taskmaster_backend_lambda = self.create_lambda_function(
             construct_id="TaskmasterBackendLambda",
             src_folder_path="at-api-backend",
             environment={
-                "API_PREFIX": self.api_prefix,
+                "ALLOWED_DOCS_IPS": self.allowed_docs_ips_from_context,
             },
             memory_size=512,
-            timeout=Duration.seconds(30),
+            timeout=Duration.minutes(30),
             description="Automated Taskmaster backend Lambda function",
-        )
-
-        # IP Authorizer Lambda Function
-        ip_authorizer_lambda = self.create_lambda_function(
-            construct_id="IpAuthorizerLambda",
-            src_folder_path="at-ip-authorizer",
-            environment={
-                "HOME_IP_SSM_PARAMETER_NAME": imported_home_ip_ssm_param_name,
-            },
-            memory_size=256,
-            timeout=Duration.seconds(10),
-            role=ip_authorizer_lambda_role,
-            description="IP Authorizer Lambda function for Automated Taskmaster",
         )
         # endregion
 
@@ -108,19 +66,10 @@ class AutomatedTaskmasterStack(Stack):
             scope=self,
             id="TaskmasterHttpApi",
             name="automated-taskmaster-api",
-            stack_suffix=self.stack_suffix,
             allow_methods=[apigwv2.CorsHttpMethod.ANY],
             allow_headers=["Content-Type", "Authorization", "*"],
             max_age=Duration.days(1),
         ).http_api
-
-        # Create an authorizer for the HTTP API
-        http_lambda_authorizer = self.create_http_lambda_authorizer(
-            construct_id="AutomatedTaskmasterAuthorizer",
-            name="automated-taskmaster-http-authorizer",
-            authorizer_function=ip_authorizer_lambda,
-            results_cache_ttl=Duration.seconds(0),  # Disable caching for IP authorizer
-        )
 
         # Create Lambda integration for the API
         taskmaster_integration = apigwv2_integrations.HttpLambdaIntegration(
@@ -129,66 +78,22 @@ class AutomatedTaskmasterStack(Stack):
 
         # Create proxy route for the API
         taskmaster_api.add_routes(
-            path="/".join([self.api_prefix, "{proxy+}"]),
+            path="/{proxy+}",
             methods=[apigwv2.HttpMethod.ANY],
             integration=taskmaster_integration,
-            authorizer=http_lambda_authorizer,
-        )
-        # endregion
-
-        # region Custom Domain Setup for API Gateway
-        # 1. Look up existing hosted zone for "chadbartel.com"
-        hosted_zone = route53.HostedZone.from_lookup(
-            self, "ArcaneScribeHostedZone", domain_name=self.base_domain_name
-        )
-
-        # 2. Create an ACM certificate for subdomain with DNS validation
-        api_certificate = acm.Certificate(
-            self,
-            "ApiCertificate",
-            domain_name=self.full_domain_name,
-            validation=acm.CertificateValidation.from_dns(hosted_zone),
-        )
-
-        # 3. Create the API Gateway Custom Domain Name resource
-        apigw_custom_domain = apigwv2.DomainName(
-            self,
-            "ApiCustomDomain",
-            domain_name=self.full_domain_name,
-            certificate=api_certificate,
-        )
-
-        # 4. Map HTTP API to this custom domain
-        default_stage = taskmaster_api.default_stage
-        if not default_stage:
-            raise ValueError(
-                "Default stage could not be found for API mapping. Ensure API has a default stage or specify one."
-            )
-
-        _ = apigwv2.ApiMapping(
-            self,
-            "ApiMapping",
-            api=taskmaster_api,
-            domain_name=apigw_custom_domain,
-            stage=default_stage,  # Use the actual default stage object
-        )
-
-        # 5. Create the Route 53 Alias Record pointing to the API Gateway custom domain
-        route53.ARecord(
-            self,
-            "ApiAliasRecord",
-            zone=hosted_zone,
-            record_name=f"{self.subdomain_part}{self.stack_suffix}",  # e.g., "arcane-scribe" or "arcane-scribe-dev"
-            target=route53.RecordTarget.from_alias(
-                targets.ApiGatewayv2DomainProperties(
-                    regional_domain_name=apigw_custom_domain.regional_domain_name,
-                    regional_hosted_zone_id=apigw_custom_domain.regional_hosted_zone_id,
-                )
-            ),
         )
         # endregion
 
         # region Outputs
+        CfnOutput(
+            self,
+            "TaskmasterApiEndpoint",
+            value=taskmaster_api.api_endpoint,
+            description="Endpoint for Automated Taskmaster API",
+            export_name=(
+                f"automated-taskmaster-api-endpoint{self.stack_suffix}"
+            ),
+        )
         CfnOutput(
             self,
             "CustomApiUrlOutput",
@@ -208,9 +113,8 @@ class AutomatedTaskmasterStack(Stack):
         memory_size: Optional[int] = 128,
         timeout: Optional[Duration] = Duration.seconds(10),
         initial_policy: Optional[List[iam.PolicyStatement]] = None,
-        role: Optional[iam.IRole] = None,
         description: Optional[str] = None,
-    ) -> lambda_.Function:
+    ) -> _lambda.Function:
         """Helper method to create a Lambda function.
 
         Parameters
@@ -227,14 +131,12 @@ class AutomatedTaskmasterStack(Stack):
             Timeout for the Lambda function, by default Duration.seconds(10)
         initial_policy : Optional[List[iam.PolicyStatement]], optional
             Initial IAM policies to attach to the Lambda function, by default None
-        role : Optional[iam.IRole], optional
-            IAM role to attach to the Lambda function, by default None
         description : Optional[str], optional
             Description for the Lambda function, by default None
 
         Returns
         -------
-        lambda_.Function
+        _lambda.Function
             The created Lambda function instance.
         """
         custom_lambda = CustomLambdaFromDockerImage(
@@ -246,49 +148,6 @@ class AutomatedTaskmasterStack(Stack):
             memory_size=memory_size,
             timeout=timeout,
             initial_policy=initial_policy or [],
-            role=role,
             description=description,
         )
         return custom_lambda.function
-
-    def create_http_lambda_authorizer(
-        self,
-        construct_id: str,
-        name: str,
-        authorizer_function: lambda_.IFunction,
-        response_types: Optional[
-            List[apigwv2_authorizers.HttpLambdaResponseType]
-        ] = None,
-        identity_source: Optional[List[str]] = None,
-        results_cache_ttl: Optional[Duration] = Duration.minutes(60),
-    ) -> apigwv2_authorizers.HttpLambdaAuthorizer:
-        """Helper method to create an HTTP Lambda Authorizer.
-
-        Parameters
-        ----------
-        construct_id : str
-            The ID of the construct.
-        name : str
-            The name of the authorizer.
-        authorizer_function : lambda_.IFunction
-            The Lambda function to be used as the authorizer.
-        response_types : Optional[List[apigwv2_authorizers.HttpLambdaResponseType]], optional
-            List of response types for the authorizer, by default None
-        identity_source : Optional[List[str]], optional
-            List of identity sources for the authorizer, by default None
-        Returns
-        -------
-        apigwv2_authorizers.HttpLambdaAuthorizer
-            The created HTTP Lambda Authorizer instance.
-        """
-        custom_http_lambda_authorizer = CustomHttpLambdaAuthorizer(
-            scope=self,
-            id=construct_id,
-            name=name,
-            authorizer_function=authorizer_function,
-            stack_suffix=self.stack_suffix,
-            response_types=response_types,
-            identity_source=identity_source,
-            results_cache_ttl=results_cache_ttl,
-        )
-        return custom_http_lambda_authorizer.authorizer
