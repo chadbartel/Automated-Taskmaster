@@ -1,6 +1,7 @@
 # Standard Library
 import os
 import json
+from functools import lru_cache
 from typing import List, Dict, Any
 
 # Third Party
@@ -16,36 +17,27 @@ logger = Logger(service="at-monster-summoner")
 _MONSTER_DATA_FILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "..", "data", "monsters.json"
 )
-_MONSTERS: List[Dict[str, Any]] = []
+_MONSTERS_CACHE: List[Monster] = []
 
 
-def _load_monsters():
-    """Load monster data from the JSON file into the global `_MONSTERS` list."""
-    # Ensure the global variable is accessible
-    global _MONSTERS
+@lru_cache(maxsize=1)
+def load_monsters_cached() -> List[Monster]:
+    """Load monsters with caching to avoid repeated file I/O.
 
-    # If already loaded, do nothing
-    if not _MONSTERS:
-        try:
-            with open(_MONSTER_DATA_FILE, "r") as f:
-                _MONSTERS = json.load(f)
-            logger.info(
-                f"Successfully loaded monster data from: {_MONSTER_DATA_FILE}"
-            )
-        except FileNotFoundError:
-            logger.warning(
-                f"ERROR: Monster data file not found at {_MONSTER_DATA_FILE}"
-            )
-            _MONSTERS = []
-        except json.JSONDecodeError:
-            logger.warning(
-                f"ERROR: Could not decode monster data from {_MONSTER_DATA_FILE}"
-            )
-            _MONSTERS = []
+    Returns
+    -------
+    List[Monster]
+        A list of `Monster` objects loaded from the JSON file.
+    """
+    # Set up a global cache for monsters
+    global _MONSTERS_CACHE
 
-
-# Load monsters at module import time
-_load_monsters()
+    # If the cache is empty, load the data from the JSON file
+    if _MONSTERS_CACHE is None:
+        with open(_MONSTER_DATA_FILE, "r") as f:
+            data = json.load(f)
+        _MONSTERS_CACHE = [Monster(**monster) for monster in data]
+    return _MONSTERS_CACHE
 
 
 def _convert_cr_to_float(cr: Any) -> float:
@@ -100,19 +92,18 @@ def find_monsters(params: MonsterSummonRequest) -> List[Monster]:
     List[Monster]
         A list of `Monster` objects that match the specified criteria.
     """
-    # Ensure the monster data is loaded
-    if not _MONSTERS:
-        _load_monsters()  # Attempt to reload if empty
-    if not _MONSTERS:
-        return []
+    # Load cached monster data
+    monsters = load_monsters_cached()
 
     # Initialize an empty list to store the results
     results = []
 
     # Iterate through the loaded monster data
-    for m_data in _MONSTERS:
+    for monster in monsters:
+        # Dump the monster data to a dictionary
+        monster_data: Dict[str, Any] = monster.model_dump(mode="json")
         # Convert CR to float for comparison
-        monster_cr_float = _convert_cr_to_float(m_data.get("cr", -1))
+        monster_cr_float = _convert_cr_to_float(monster_data.get("cr", -1))
         # Skip monsters with CR below the minimum specified
         if params.cr_min is not None and monster_cr_float < params.cr_min:
             continue
@@ -123,17 +114,17 @@ def find_monsters(params: MonsterSummonRequest) -> List[Monster]:
         if params.environment:
             env_match = any(
                 params.environment.lower() in env.lower()
-                for env in m_data.get("environment", [])
+                for env in monster_data.get("environment", [])
             )
             if not env_match:
                 continue
 
         # Ensure all required fields for Monster model are present or have defaults
         try:
-            results.append(Monster(**m_data))
+            results.append(Monster(**monster_data))
         except Exception as e:  # Catch Pydantic validation error or others
             logger.warning(
-                f"Error creating Monster object from data: {m_data}. Error: {e}"
+                f"Error creating Monster object from data: {monster_data}. Error: {e}"
             )
             continue  # Skip this monster if data is incompatible
 
