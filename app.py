@@ -22,7 +22,6 @@ aws_env = cdk.Environment(
 stack_suffix = app.node.try_get_context("stack-suffix")
 formatted_stack_suffix = f"-{stack_suffix}" if stack_suffix else ""
 stack_name_prefix = "automated-taskmaster-stack"
-api_prefix = app.node.try_get_context("api_prefix") or "api/v1"
 
 if stack_suffix:
     final_stack_name = f"{stack_name_prefix}{formatted_stack_suffix}"
@@ -34,11 +33,7 @@ else:
 
 # Create the stack with the final name and environment
 AutomatedTaskmasterStack(
-    app,
-    final_stack_name,
-    stack_suffix=formatted_stack_suffix,
-    env=aws_env,
-    api_prefix=api_prefix,
+    app, final_stack_name, stack_suffix=formatted_stack_suffix, env=aws_env
 )
 
 # Synthesize the app

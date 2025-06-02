@@ -1,5 +1,4 @@
 # Standard Library
-import os
 from typing import Dict, Any
 
 # Third Party
@@ -14,13 +13,6 @@ from automated_taskmaster.utils import verify_client_id_address
 
 # Initialize a logger
 logger = Logger(service="at-api-documentation")
-
-# Set static variables
-API_PREFIX = os.getenv("API_PREFIX", "api/v1")
-ALLOWED_DOCS_IPS_STR = os.environ.get("ALLOWED_DOCS_IPS", "")
-ALLOWED_DOCS_IPS = [
-    ip.strip() for ip in ALLOWED_DOCS_IPS_STR.split(",") if ip.strip()
-]
 
 # Define the FastAPI router
 router = APIRouter(tags=["documentation"])
