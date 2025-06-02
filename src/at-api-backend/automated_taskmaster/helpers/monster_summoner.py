@@ -33,7 +33,7 @@ def load_monsters_cached() -> List[Monster]:
     global _MONSTERS_CACHE
 
     # If the cache is empty, load the data from the JSON file
-    if _MONSTERS_CACHE is None:
+    if not _MONSTERS_CACHE:
         with open(_MONSTER_DATA_FILE, "r") as f:
             data = json.load(f)
         _MONSTERS_CACHE = [Monster(**monster) for monster in data]
