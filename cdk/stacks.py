@@ -144,15 +144,6 @@ class AutomatedTaskmasterStack(Stack):
         # region Outputs
         CfnOutput(
             self,
-            "TaskmasterApiEndpoint",
-            value=taskmaster_api.api_endpoint,
-            description="Endpoint for Automated Taskmaster API",
-            export_name=(
-                f"automated-taskmaster-api-endpoint{self.stack_suffix}"
-            ),
-        )
-        CfnOutput(
-            self,
             "CustomApiUrlOutput",
             value=f"https://{self.full_domain_name}",
             description="Custom API URL for Automated Taskmaster",
