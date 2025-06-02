@@ -71,6 +71,7 @@ class AutomatedTaskmasterStack(Stack):
             scope=self,
             id="TaskmasterHttpApi",
             name="automated-taskmaster-api",
+            stack_suffix=self.stack_suffix,
             allow_methods=[apigwv2.CorsHttpMethod.ANY],
             allow_headers=["Content-Type", "Authorization", "*"],
             max_age=Duration.days(1),
