@@ -8,6 +8,9 @@ from aws_cdk import (
     aws_lambda as _lambda,
     aws_apigatewayv2 as apigwv2,
     aws_apigatewayv2_integrations as apigwv2_integrations,
+    aws_certificatemanager as acm,
+    aws_route53 as route53,
+    aws_route53_targets as targets,
     Duration,
     CfnOutput,
 )
@@ -83,6 +86,58 @@ class AutomatedTaskmasterStack(Stack):
             path="/".join([f"/{self.api_prefix}", "{proxy+}"]),
             methods=[apigwv2.HttpMethod.ANY],
             integration=taskmaster_integration,
+        )
+        # endregion
+
+        # region Custom Domain Setup for API Gateway
+        # 1. Look up existing hosted zone for "thatsmidnight.com"
+        hosted_zone = route53.HostedZone.from_lookup(
+            self, "ArcaneScribeHostedZone", domain_name=self.base_domain_name
+        )
+
+        # 2. Create an ACM certificate for subdomain with DNS validation
+        api_certificate = acm.Certificate(
+            self,
+            "ApiCertificate",
+            domain_name=self.full_domain_name,
+            validation=acm.CertificateValidation.from_dns(hosted_zone),
+        )
+
+        # 3. Create the API Gateway Custom Domain Name resource
+        apigw_custom_domain = apigwv2.DomainName(
+            self,
+            "ApiCustomDomain",
+            domain_name=self.full_domain_name,
+            certificate=api_certificate,
+        )
+
+        # 4. Map HTTP API to this custom domain
+        default_stage = taskmaster_api.default_stage
+        if not default_stage:
+            raise ValueError(
+                "Default stage could not be found for API mapping. Ensure API has a default stage or specify one."
+            )
+
+        _ = apigwv2.ApiMapping(
+            self,
+            "ApiMapping",
+            api=taskmaster_api,
+            domain_name=apigw_custom_domain,
+            stage=default_stage,  # Use the actual default stage object
+        )
+
+        # 5. Create the Route 53 Alias Record pointing to the API Gateway custom domain
+        route53.ARecord(
+            self,
+            "ApiAliasRecord",
+            zone=hosted_zone,
+            record_name=f"{self.subdomain_part}{self.stack_suffix}",  # e.g., "arcane-scribe" or "arcane-scribe-dev"
+            target=route53.RecordTarget.from_alias(
+                targets.ApiGatewayv2DomainProperties(
+                    regional_domain_name=apigw_custom_domain.regional_domain_name,
+                    regional_hosted_zone_id=apigw_custom_domain.regional_hosted_zone_id,
+                )
+            ),
         )
         # endregion
 
