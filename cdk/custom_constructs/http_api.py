@@ -109,6 +109,7 @@ class CustomHttpApiGateway(Construct):
             api_name=self.name,
             cors_preflight=cors_preflight,
             default_authorizer=default_authorizer,
+            disable_execute_api_endpoint=True,
         )
 
         # Store integrations and routes for reference
