@@ -6,7 +6,7 @@ import os
 import aws_cdk as cdk
 
 # Local Modules
-from cdk.stacks import ArcaneScribeStack
+from cdk.stacks import AutomatedTaskmasterStack
 
 # Initialize the CDK application
 app = cdk.App()
@@ -32,7 +32,7 @@ else:
     final_stack_name = stack_name_prefix
 
 # Create the stack with the final name and environment
-ArcaneScribeStack(
+AutomatedTaskmasterStack(
     app, final_stack_name, stack_suffix=formatted_stack_suffix, env=aws_env
 )
 
