@@ -54,6 +54,7 @@ class AutomatedTaskmasterStack(Stack):
             src_folder_path="at-api-backend",
             environment={
                 "ALLOWED_DOCS_IPS": self.allowed_docs_ips_from_context,
+                "API_PREFIX": self.api_prefix,
             },
             memory_size=512,
             timeout=Duration.minutes(30),
