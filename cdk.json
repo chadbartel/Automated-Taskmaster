@@ -22,7 +22,8 @@
     "@aws-cdk/core:stackRelativeExports": true,
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
     "taskmaster_image_tag": "latest",
-    "allowed_docs_ips": "127.0.0.1"
+    "allowed_docs_ips": "127.0.0.1",
+    "api_prefix": "api/v1"
   },
   "build": null,
   "output": "cdk.out",
