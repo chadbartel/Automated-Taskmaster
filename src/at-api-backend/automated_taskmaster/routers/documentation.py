@@ -9,7 +9,7 @@ from fastapi.openapi.utils import get_openapi
 from aws_lambda_powertools import Logger
 
 # Local Modules
-from automated_taskmaster.utils import verify_client_id_address
+from automated_taskmaster.helpers.utils import verify_client_id_address
 
 # Initialize a logger
 logger = Logger(service="at-api-documentation")

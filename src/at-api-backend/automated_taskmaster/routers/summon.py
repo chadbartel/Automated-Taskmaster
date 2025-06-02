@@ -3,12 +3,12 @@ from fastapi import APIRouter, Depends
 from aws_lambda_powertools import Logger
 
 # Local Modules
-from automated_taskmaster.utils import verify_client_id_address
+from automated_taskmaster.helpers.utils import verify_client_id_address
 from automated_taskmaster.models.monster import (
     MonsterSummonRequest,
     MonsterSummonResponse,
 )
-from automated_taskmaster.monster_summoner import find_monsters
+from automated_taskmaster.helpers.monster_summoner import find_monsters
 
 # Initialize a logger
 logger = Logger(service="at-api-summon")
