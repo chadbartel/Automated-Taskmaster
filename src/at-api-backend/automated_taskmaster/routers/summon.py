@@ -15,11 +15,11 @@ logger = Logger(service="at-api-summon")
 
 
 # Define the FastAPI router
-router = APIRouter(prefix="/taskmaster", tags=["summoner"])
+router = APIRouter(prefix="/summon-monster", tags=["summoner"])
 
 
 @router.post(
-    "/summon-monster",
+    "",
     response_model=MonsterSummonResponse,
     dependencies=[Depends(verify_client_id_address)],
 )
