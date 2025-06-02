@@ -22,7 +22,6 @@
     "@aws-cdk/core:stackRelativeExports": true,
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
     "@aws-cdk/core:bootstrapQualifier": "arcaneqs",
-    "api_prefix": "/api/v1",
     "taskmaster_image_tag": "latest",
     "allowed_ips": "127.0.0.1",
     "api_prefix": "api/v1"
