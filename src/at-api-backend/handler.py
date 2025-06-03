@@ -1,4 +1,5 @@
 # Standard Library
+import os
 from typing import Dict, Any
 
 # Third Party
@@ -14,14 +15,17 @@ from automated_taskmaster.api import router
 # Initialize a logger
 logger = Logger()
 
+# Get the API prefix from environment variables or default to 'api/v1'
+api_prefix = os.getenv("API_PREFIX", "api/v1")
+
 # Create a FastAPI application instance
 app = FastAPI(
     title="Automated Taskmaster API",
     version="0.1.0",
     description="Provides TTRPG utilities like monster summoning.",
-    docs_url=None,
-    redoc_url=None,
-    openapi_url=None,
+    docs_url=f"{api_prefix}/docs",
+    redoc_url=f"{api_prefix}/redoc",
+    openapi_url=f"{api_prefix}/openapi.json",
 )
 
 # Add the API router to the FastAPI app
