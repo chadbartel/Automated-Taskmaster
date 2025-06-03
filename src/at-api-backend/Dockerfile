@@ -1,5 +1,5 @@
-# Use an official Python runtime as a parent image
-FROM python:3.12-slim
+# Use the official AWS Lambda Python base image for Python 3.12
+FROM public.ecr.aws/lambda/python:3.12
 
 # Set the root directory for the Lambda function
 ENV LAMBDA_TASK_ROOT=/var/task
