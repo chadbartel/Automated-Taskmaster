@@ -137,6 +137,7 @@ class AutomatedTaskmasterStack(Stack):
             path="/".join([f"/{self.api_prefix}", "{proxy+}"]),
             methods=[apigwv2.HttpMethod.ANY],
             integration=taskmaster_integration,
+            authorizer=http_lambda_authorizer,
         )
         # endregion
 
