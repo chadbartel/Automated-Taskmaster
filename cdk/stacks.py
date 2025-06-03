@@ -118,6 +118,15 @@ class AutomatedTaskmasterStack(Stack):
             max_age=Duration.days(1),
         ).http_api
 
+        # Create an authorizer for the HTTP API
+        http_lambda_authorizer = self.create_http_lambda_authorizer(
+            construct_id="AutomatedTaskmasterAuthorizer",
+            name="automated-taskmaster-http-authorizer",
+            authorizer_function=ip_authorizer_lambda,
+            identity_source=["$request.context.http.sourceIp"],
+            results_cache_ttl=Duration.seconds(0),  # Disable caching for IP authorizer
+        )
+
         # Create Lambda integration for the API
         taskmaster_integration = apigwv2_integrations.HttpLambdaIntegration(
             "TaskmasterIntegration", handler=taskmaster_backend_lambda
