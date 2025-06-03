@@ -5,7 +5,7 @@ from typing import Optional, List
 from aws_cdk import (
     Stack,
     aws_iam as iam,
-    aws_lambda as _lambda,
+    aws_lambda as lambda_,
     aws_apigatewayv2 as apigwv2,
     aws_apigatewayv2_integrations as apigwv2_integrations,
     aws_apigatewayv2_authorizers as apigwv2_authorizers,
@@ -168,7 +168,7 @@ class AutomatedTaskmasterStack(Stack):
         initial_policy: Optional[List[iam.PolicyStatement]] = None,
         role: Optional[iam.IRole] = None,
         description: Optional[str] = None,
-    ) -> _lambda.Function:
+    ) -> lambda_.Function:
         """Helper method to create a Lambda function.
 
         Parameters
@@ -192,7 +192,7 @@ class AutomatedTaskmasterStack(Stack):
 
         Returns
         -------
-        _lambda.Function
+        lambda_.Function
             The created Lambda function instance.
         """
         custom_lambda = CustomLambdaFromDockerImage(
