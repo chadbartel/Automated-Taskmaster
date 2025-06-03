@@ -91,6 +91,19 @@ class AutomatedTaskmasterStack(Stack):
             timeout=Duration.seconds(30),
             description="Automated Taskmaster backend Lambda function",
         )
+
+        # IP Authorizer Lambda Function
+        ip_authorizer_lambda = self.create_lambda_function(
+            construct_id="IpAuthorizerLambda",
+            src_folder_path="at-ip-authorizer",
+            environment={
+                "HOME_IP_SSM_PARAMETER_NAME": imported_home_ip_ssm_param_name,
+            },
+            memory_size=256,
+            timeout=Duration.seconds(10),
+            role=ip_authorizer_lambda_role,
+            description="IP Authorizer Lambda function for Automated Taskmaster",
+        )
         # endregion
 
         # region HTTP API Gateway
