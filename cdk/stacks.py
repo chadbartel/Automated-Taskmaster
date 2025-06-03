@@ -8,6 +8,7 @@ from aws_cdk import (
     aws_lambda as _lambda,
     aws_apigatewayv2 as apigwv2,
     aws_apigatewayv2_integrations as apigwv2_integrations,
+    aws_apigatewayv2_authorizers as apigwv2_authorizers,
     aws_certificatemanager as acm,
     aws_route53 as route53,
     aws_route53_targets as targets,
@@ -19,6 +20,9 @@ from constructs import Construct
 # Local Modules
 from cdk.custom_constructs.lambda_function import CustomLambdaFromDockerImage
 from cdk.custom_constructs.http_api import CustomHttpApiGateway
+from cdk.custom_constructs.http_lambda_authorizer import (
+    CustomHttpLambdaAuthorizer,
+)
 
 
 class AutomatedTaskmasterStack(Stack):
@@ -204,3 +208,45 @@ class AutomatedTaskmasterStack(Stack):
             description=description,
         )
         return custom_lambda.function
+
+    def create_http_lambda_authorizer(
+        self,
+        construct_id: str,
+        name: str,
+        authorizer_function: lambda_.IFunction,
+        response_types: Optional[
+            List[apigwv2_authorizers.HttpLambdaResponseType]
+        ] = None,
+        identity_source: Optional[List[str]] = None,
+        results_cache_ttl: Optional[Duration] = Duration.minutes(60),
+    ) -> apigwv2_authorizers.HttpLambdaAuthorizer:
+        """Helper method to create an HTTP Lambda Authorizer.
+
+        Parameters
+        ----------
+        construct_id : str
+            The ID of the construct.
+        name : str
+            The name of the authorizer.
+        authorizer_function : lambda_.IFunction
+            The Lambda function to be used as the authorizer.
+        response_types : Optional[List[apigwv2_authorizers.HttpLambdaResponseType]], optional
+            List of response types for the authorizer, by default None
+        identity_source : Optional[List[str]], optional
+            List of identity sources for the authorizer, by default None
+        Returns
+        -------
+        apigwv2_authorizers.HttpLambdaAuthorizer
+            The created HTTP Lambda Authorizer instance.
+        """
+        custom_http_lambda_authorizer = CustomHttpLambdaAuthorizer(
+            scope=self,
+            id=construct_id,
+            name=name,
+            authorizer_function=authorizer_function,
+            stack_suffix=self.stack_suffix,
+            response_types=response_types,
+            identity_source=identity_source,
+            results_cache_ttl=results_cache_ttl,
+        )
+        return custom_http_lambda_authorizer.authorizer
