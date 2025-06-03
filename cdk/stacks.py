@@ -74,7 +74,7 @@ class AutomatedTaskmasterStack(Stack):
             self,
             "ImportedIpAuthorizerRole",
             role_arn=imported_authorizer_role_arn,
-            mutable=True,  # Allow modifications to the role
+            mutable=False,
         )
         # endregion
 
