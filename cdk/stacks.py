@@ -119,7 +119,6 @@ class AutomatedTaskmasterStack(Stack):
             construct_id="AutomatedTaskmasterAuthorizer",
             name="automated-taskmaster-http-authorizer",
             authorizer_function=ip_authorizer_lambda,
-            identity_source=["$request.context.http.sourceIp"],
             results_cache_ttl=Duration.seconds(0),  # Disable caching for IP authorizer
         )
 
