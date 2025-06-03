@@ -162,6 +162,7 @@ class AutomatedTaskmasterStack(Stack):
         memory_size: Optional[int] = 128,
         timeout: Optional[Duration] = Duration.seconds(10),
         initial_policy: Optional[List[iam.PolicyStatement]] = None,
+        role: Optional[iam.IRole] = None,
         description: Optional[str] = None,
     ) -> _lambda.Function:
         """Helper method to create a Lambda function.
@@ -180,6 +181,8 @@ class AutomatedTaskmasterStack(Stack):
             Timeout for the Lambda function, by default Duration.seconds(10)
         initial_policy : Optional[List[iam.PolicyStatement]], optional
             Initial IAM policies to attach to the Lambda function, by default None
+        role : Optional[iam.IRole], optional
+            IAM role to attach to the Lambda function, by default None
         description : Optional[str], optional
             Description for the Lambda function, by default None
 
@@ -197,6 +200,7 @@ class AutomatedTaskmasterStack(Stack):
             memory_size=memory_size,
             timeout=timeout,
             initial_policy=initial_policy or [],
+            role=role,
             description=description,
         )
         return custom_lambda.function
