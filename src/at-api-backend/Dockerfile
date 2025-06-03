@@ -5,9 +5,10 @@ FROM python:3.12-slim
 ENV LAMBDA_TASK_ROOT=/var/task
 
 # Copy function code
-COPY requirements.txt handler.py automated_taskmaster/ ${LAMBDA_TASK_ROOT}/
+COPY handler.py automated_taskmaster/ ${LAMBDA_TASK_ROOT}/
 
 # Install dependencies from requirements.txt
+COPY requirements.txt ${LAMBDA_TASK_ROOT}/
 RUN pip install -r requirements.txt -t ${LAMBDA_TASK_ROOT}/
 
 # Set the CMD to your handler
