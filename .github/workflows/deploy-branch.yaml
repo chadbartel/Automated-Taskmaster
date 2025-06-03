@@ -206,7 +206,6 @@ jobs:
         run: |
           poetry run cdk synth \
             --context stack-suffix=${{ needs.setup.outputs.stack-suffix }} \
-            --context allowed_ips="${{ secrets.ALLOWED_IPS_TASKMASTER || vars.DEFAULT_ALLOWED_IPS || '127.0.0.1' }}" \
             -q
         env:
           CDK_DEFAULT_ACCOUNT: ${{ vars.CDK_DEFAULT_ACCOUNT }}
@@ -279,8 +278,7 @@ jobs:
       - name: CDK Deploy
         run: |
           poetry run cdk deploy --all --require-approval never \
-            --context stack-suffix=${{ needs.setup.outputs.stack-suffix }} \
-            --context allowed_ips="${{ secrets.ALLOWED_IPS_TASKMASTER || vars.DEFAULT_ALLOWED_IPS || '127.0.0.1' }}"
+            --context stack-suffix=${{ needs.setup.outputs.stack-suffix }}
         env:
           CDK_DEFAULT_ACCOUNT: ${{ vars.CDK_DEFAULT_ACCOUNT }}
           CDK_DEFAULT_REGION: ${{ vars.AWS_REGION || 'us-west-2' }}  # Default region, can be overridden

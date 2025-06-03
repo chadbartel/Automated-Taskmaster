@@ -50,9 +50,6 @@ class AutomatedTaskmasterStack(Stack):
         self.full_domain_name = (
             f"{self.subdomain_part}{self.stack_suffix}.{self.base_domain_name}"
         )
-        self.allowed_ips_from_context = (
-            self.node.try_get_context("allowed_ips") or "127.0.0.1"
-        )
         self.api_prefix = self.node.try_get_context("api_prefix") or "api/v1"
         # endregion
 
