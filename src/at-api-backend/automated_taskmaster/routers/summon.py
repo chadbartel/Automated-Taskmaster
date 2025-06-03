@@ -1,9 +1,8 @@
 # Third Party
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 from aws_lambda_powertools import Logger
 
 # Local Modules
-from automated_taskmaster.helpers.utils import verify_client_id_address
 from automated_taskmaster.models.monster import (
     MonsterSummonRequest,
     MonsterSummonResponse,
@@ -21,7 +20,6 @@ router = APIRouter(prefix="/summon-monster", tags=["summoner"])
 @router.post(
     "",
     response_model=MonsterSummonResponse,
-    dependencies=[Depends(verify_client_id_address)],
 )
 async def summon_monster_endpoint(
     request_params: MonsterSummonRequest,
