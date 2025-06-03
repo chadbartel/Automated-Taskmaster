@@ -14,6 +14,7 @@ from aws_cdk import (
     aws_route53_targets as targets,
     Duration,
     CfnOutput,
+    Fn,
 )
 from constructs import Construct
 
@@ -55,7 +56,30 @@ class AutomatedTaskmasterStack(Stack):
         self.api_prefix = self.node.try_get_context("api_prefix") or "api/v1"
         # endregion
 
-        # region Backend Lambda Function
+        # region Import CloudFormation Outputs
+        # Import home IP SSM Parameter Name
+        imported_home_ip_ssm_param_name = Fn.import_value(
+            "home-ip-ssm-param-name"
+        )
+
+        # Import Authorizer IAM Role ARN
+        imported_authorizer_role_arn = Fn.import_value(
+            "authorizer-lambda-role-arn"
+        )
+        # endregion
+
+        # region IAM Roles
+        # Import the Authorizer Lambda IAM Role
+        ip_authorizer_lambda_role = iam.Role.from_role_arn(
+            self,
+            "ImportedIpAuthorizerRole",
+            role_arn=imported_authorizer_role_arn,
+            mutable=True,  # Allow modifications to the role
+        )
+        # endregion
+
+        # region Lambda Functions
+        # Backend Lambda Function
         taskmaster_backend_lambda = self.create_lambda_function(
             construct_id="TaskmasterBackendLambda",
             src_folder_path="at-api-backend",
