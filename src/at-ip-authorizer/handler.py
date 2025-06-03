@@ -11,7 +11,7 @@ logger = Logger()
 
 
 @logger.inject_lambda_context(log_event=False)
-def lambda_authorizer_handler(
+def lambda_handler(
     event: Dict[str, Any], context: LambdaContext
 ) -> Dict[str, Any]:
     """Lambda Authorizer for API Gateway HTTP API.
