@@ -16,7 +16,7 @@ from automated_taskmaster.api import router
 logger = Logger()
 
 # Get the API prefix from environment variables or default to 'api/v1'
-api_prefix = os.getenv("API_PREFIX", "api/v1")
+api_prefix = os.getenv("API_PREFIX", "/api/v1")
 
 # Create a FastAPI application instance
 app = FastAPI(

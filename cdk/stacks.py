@@ -50,7 +50,7 @@ class AutomatedTaskmasterStack(Stack):
         self.full_domain_name = (
             f"{self.subdomain_part}{self.stack_suffix}.{self.base_domain_name}"
         )
-        self.api_prefix = self.node.try_get_context("api_prefix") or "api/v1"
+        self.api_prefix = self.node.try_get_context("api_prefix") or "/api/v1"
         # endregion
 
         # region Import CloudFormation Outputs
@@ -129,7 +129,7 @@ class AutomatedTaskmasterStack(Stack):
 
         # Create proxy route for the API
         taskmaster_api.add_routes(
-            path="/".join([f"/{self.api_prefix}", "{proxy+}"]),
+            path="/".join([self.api_prefix, "{proxy+}"]),
             methods=[apigwv2.HttpMethod.ANY],
             integration=taskmaster_integration,
             authorizer=http_lambda_authorizer,
