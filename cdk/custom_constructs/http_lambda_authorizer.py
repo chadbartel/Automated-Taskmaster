@@ -28,6 +28,7 @@ class CustomHttpLambdaAuthorizer(Construct):
             List[apigwv2_authorizers.HttpLambdaResponseType]
         ] = None,
         identity_source: Optional[List[str]] = None,
+        results_cache_ttl: Optional[Duration] = Duration.minutes(60),
         **kwargs,
     ) -> None:
         """Initialize the Custom HTTP Lambda Authorizer Construct.
@@ -49,6 +50,8 @@ class CustomHttpLambdaAuthorizer(Construct):
             by default [apigwv2_authorizers.HttpLambdaResponseType.SIMPLE]
         identity_source : Optional[List[str]], optional
             List of identity sources for the authorizer, by default None
+        results_cache_ttl : Optional[Duration], optional
+            Time to live for the results cache, by default Duration.minutes(60)
         """
         super().__init__(scope, id, **kwargs)
 
@@ -61,5 +64,5 @@ class CustomHttpLambdaAuthorizer(Construct):
                 or [apigwv2_authorizers.HttpLambdaResponseType.SIMPLE]
             ),
             identity_source=identity_source or [],
-            results_cache_ttl=Duration.minutes(60),
+            results_cache_ttl=results_cache_ttl,
         )
