@@ -96,6 +96,7 @@ class CustomLambdaFromDockerImage(Construct):
             environment=powertools_env_vars,
             layers=layers,
             initial_policy=initial_policy,
+            role=role,
             description=description
             or f"Lambda function for {name}{stack_suffix}",
         )
