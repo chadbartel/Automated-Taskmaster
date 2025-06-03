@@ -1,18 +1,21 @@
 # Use the official AWS Lambda Python base image for Python 3.12
 FROM public.ecr.aws/lambda/python:3.12
 
-# Set the root directory for the Lambda function
+# Set the root directory for the Lambda function, also the working directory
 ENV LAMBDA_TASK_ROOT=/var/task
+WORKDIR ${LAMBDA_TASK_ROOT}
 
-# Copy function code
-COPY handler.py ${LAMBDA_TASK_ROOT}/
+# Copy requirements.txt first to leverage Docker caching
+COPY requirements.txt .
+# Install dependencies into the LAMBDA_TASK_ROOT
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt -t .
 
-# Copy submodules
-COPY automated_taskmaster/ ${LAMBDA_TASK_ROOT}/automated_taskmaster/
+# Copy the main handler file (e.g., your FastAPI app definition)
+COPY handler.py .
 
-# Install dependencies from requirements.txt
-COPY requirements.txt ${LAMBDA_TASK_ROOT}/
-RUN pip install -r requirements.txt -t ${LAMBDA_TASK_ROOT}/
+# Copy the 'automated_taskmaster' package directory into the LAMBDA_TASK_ROOT.
+COPY ./automated_taskmaster ./automated_taskmaster/
 
-# Set the CMD to your handler
+# Set the CMD to your handler function within handler.py
 CMD [ "handler.lambda_handler" ]
