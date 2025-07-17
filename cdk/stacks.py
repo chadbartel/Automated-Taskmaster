@@ -45,7 +45,7 @@ class AutomatedTaskmasterStack(Stack):
 
         # region Stack Suffix and Subdomain Configuration
         self.stack_suffix = (stack_suffix if stack_suffix else "").lower()
-        self.base_domain_name = "thatsmidnight.com"
+        self.base_domain_name = "chadbartel.com"
         self.subdomain_part = "automated-taskmaster"
         self.full_domain_name = (
             f"{self.subdomain_part}{self.stack_suffix}.{self.base_domain_name}"
@@ -137,7 +137,7 @@ class AutomatedTaskmasterStack(Stack):
         # endregion
 
         # region Custom Domain Setup for API Gateway
-        # 1. Look up existing hosted zone for "thatsmidnight.com"
+        # 1. Look up existing hosted zone for "chadbartel.com"
         hosted_zone = route53.HostedZone.from_lookup(
             self, "ArcaneScribeHostedZone", domain_name=self.base_domain_name
         )
