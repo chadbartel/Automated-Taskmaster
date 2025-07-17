@@ -2,7 +2,7 @@
 name = "automated-taskmaster"
 version = "0.1.0"
 description = "A TTRPG utility for generating encounters, loot, or prompts for character backstory."
-authors = ["thatsmidnight <10793854+thatsmidnight@users.noreply.github.com>"]
+authors = ["chadbartel <10793854+chadbartel@users.noreply.github.com>"]
 license = "CC0-1.0"
 readme = "README.md"
 package-mode = true
